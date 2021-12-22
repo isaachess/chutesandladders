@@ -60,8 +60,12 @@ func askForLine(text string) (string, error) {
 }
 
 func readLine() (string, error) {
+	return readUntil('\n')
+}
+
+func readUntil(delimeter byte) (string, error) {
 	reader := bufio.NewReader(os.Stdin)
-	text, err := reader.ReadString('\n')
+	text, err := reader.ReadString(delimeter)
 	if err != nil {
 		return "", err
 	}
@@ -71,7 +75,10 @@ func readLine() (string, error) {
 func startGame(players []string, goal int) error {
 	for {
 		for _, player := range players {
-			won := takeTurn(player, goal)
+			won, err := takeTurn(player, goal)
+			if err != nil {
+				return err
+			}
 			if won {
 				fmt.Printf("Player %s won!\n", player)
 				return nil
@@ -80,14 +87,21 @@ func startGame(players []string, goal int) error {
 	}
 }
 
-func takeTurn(player string, goal int) (won bool) {
-	fmt.Printf("It is %s's turn!\n", player)
+func takeTurn(player string, goal int) (won bool, err error) {
+	fmt.Printf("\n\nIt is %s's turn!\n\nPress enter/return to roll!\n\n", player)
+	_, err = readLine()
+	if err != nil {
+		return false, err
+	}
+	for i := 0; i < 3; i++ {
+		time.Sleep(500 * time.Millisecond)
+		fmt.Print(". ")
+	}
+	time.Sleep(500 * time.Millisecond)
+	fmt.Print("\n")
 	roll := rollD6()
 	fmt.Printf("%s rolled a %d\n", player, roll)
-	if roll == goal {
-		return true
-	}
-	return false
+	return roll == goal, nil
 }
 
 func rollD6() int {
