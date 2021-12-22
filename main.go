@@ -24,14 +24,7 @@ func bobby() {
 }
 
 func run() error {
-	reader := bufio.NewReader(os.Stdin)
-
-	fmt.Print("Choose your goal (1-6): ")
-	text, err := reader.ReadString('\n')
-	if err != nil {
-		return err
-	}
-	goal, err := strconv.Atoi(strings.TrimSpace(text))
+	goal, err := askForNumber("Choose your goal (1-6): ")
 	if err != nil {
 		return err
 	}
@@ -40,30 +33,39 @@ func run() error {
 		return fmt.Errorf("goal must be between 1 and 6")
 	}
 
-	fmt.Print("How many players are there? ")
-
-	text, err = reader.ReadString('\n')
+	numPlayers, err := askForNumber("How many players are there? ")
 	if err != nil {
 		return err
 	}
 
-	numPlayers, err := strconv.Atoi(strings.TrimSpace(text))
+	players, err := readPlayerNames(numPlayers)
 	if err != nil {
 		return err
 	}
 
-	players, err := readPlayerNames(numPlayers, reader)
-	if err != nil {
-		return err
-	}
+	return startGame(players, goal)
+}
 
-	fmt.Println("The names of the players are:", players)
-	err = startGame(players, goal)
+func askForNumber(text string) (int, error) {
+	line, err := askForLine(text)
 	if err != nil {
-		return err
+		return 0, err
 	}
+	return strconv.Atoi(line)
+}
 
-	return nil
+func askForLine(text string) (string, error) {
+	fmt.Print(text)
+	return readLine()
+}
+
+func readLine() (string, error) {
+	reader := bufio.NewReader(os.Stdin)
+	text, err := reader.ReadString('\n')
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(text), nil
 }
 
 func startGame(players []string, goal int) error {
@@ -96,16 +98,15 @@ func rollDie(sides int) int {
 	return rand.Intn(sides) + 1
 }
 
-func readPlayerNames(numPlayers int, reader *bufio.Reader) ([]string, error) {
+func readPlayerNames(numPlayers int) ([]string, error) {
 	var names []string
 	for i := 0; i < numPlayers; i++ {
-		fmt.Printf("Please enter the name of player %d: ", i+1)
 
-		text, err := reader.ReadString('\n')
+		line, err := askForLine(fmt.Sprintf("Please enter the name of player %d: ", i+1))
 		if err != nil {
 			return nil, err
 		}
-		names = append(names, strings.TrimSpace(text))
+		names = append(names, line)
 	}
 	return names, nil
 }
