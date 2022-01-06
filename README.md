@@ -1,2 +1,2 @@
 # chutesandladders
-The computer plays chutes and ladders.
+Teaching my kids to code with very simple gameplay.
